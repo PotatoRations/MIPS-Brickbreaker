@@ -194,17 +194,17 @@ draw_paddle:
 	addi $sp, $sp, -4	# Decrement stack pointer
 	sw $ra, 0($sp)		# Save return address to stack
 	jal go_to_screen_mem	# Get positioned screen cursor in $v0
-	lw $ra, 0($sp)		# Get return value back
-	addi $sp, $sp, 4	# Increment stack pointer
+	
 	
 	# Drawing the paddle
 	add $a0, $v0, $zero	# Load cursor to a0
 	lw $a1, PAD_HEIGHT
 	lw $a2, PAD_WIDTH	# Load paddle width and height  to a
 	lw $a3, PAD_COL		# Load paddle colour
-	add $t9, $ra, $zero	# Transfer return address (about to make function call)
 	jal draw_rect	
-	jr $t9
+	lw $ra, 0($sp)		# Get return value back
+	addi $sp, $sp, 4	# Increment stack pointer
+	jr $ra
 	
 .globl clear_paddle
 # Draws the paddle

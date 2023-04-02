@@ -68,7 +68,7 @@ BRICKS_IN_COL: .word 16		# Stores the nnumber of bricks in the column
 .globl BALL_X
 BALL_X: .word 0x00000020		# X location of ball
 .globl BALL_Y
-BALL_Y: .word 0x00000074		# Y loccation of ball
+BALL_Y: .word 0x00000077		# Y loccation of ball
 .globl BALL_X_V
 BALL_X_V: .word 1			# X velocity of the ball, between 1 and -1
 .globl BALL_Y_V
@@ -83,7 +83,9 @@ BALL_Y_V: .word -1			# Y velocity of the ball, always either 1 or -1
 
 	# Run the Brick Breaker game.
 main:
+	title_screen:
 	# Draw title screen
+	jal clear_screen
 	jal set_bricks
 	jal draw_paddle
 	jal draw_walls
@@ -131,8 +133,23 @@ game_loop:
     b game_loop
     
 game_over:	# Ends the game
-	li $v0, 10
-	syscall
+	# reset ball
+	li $t0, 0x00000020
+	sw $t0, BALL_X
+	li $t0, 0x00000077
+	sw $t0, BALL_Y
+	li $t0, 1
+	sw $t0, BALL_X_V
+	li $t0, -1
+	sw $t0, BALL_Y_V
+	# reset paddle
+	li $t0, 0x00000019
+	sw $t0, PAD_X
+	li $t0, 0x00CCCCFF	# For some unknown reason we have to change the paddle colour, idk why but it breaks without it
+				# There's probably some kind of memory leak or issue somewhere
+	sw $t0, PAD_COL
+	j title_screen		# jump to title screen
+
 
 
 
