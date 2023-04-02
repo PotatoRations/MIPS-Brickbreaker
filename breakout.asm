@@ -29,6 +29,7 @@ DSPL_HEIGHT:
 	.word 0x00000080	# Height of the display in pixels (128)
 
 # The address of the keyboard. Don't forget to connect it!
+.globl ADDR_KBRD
 ADDR_KBRD:
     .word 0xffff0000
 
@@ -82,8 +83,16 @@ BALL_Y_V: .word -1			# Y velocity of the ball, always either 1 or -1
 
 	# Run the Brick Breaker game.
 main:
-
 	# Draw title screen
+	jal set_bricks
+	jal draw_paddle
+	jal draw_walls
+	jal jank_draw_bricks
+	jal draw_ball 
+	jal set_title
+	jal draw_title
+	jal title_logic # blocks game until A is pressed and we exit title screen
+	jal clear_screen	# Clear the screen
 
     # Initialize the game
     jal set_bricks
