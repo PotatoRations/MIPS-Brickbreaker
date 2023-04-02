@@ -23,7 +23,6 @@ jank_draw_bricks:
 	lw $a1, BRICK_OFFSET_Y	# Load y offset into a1
 	jal go_to_screen_mem	# Get starting cursor postion 
 	add $t0, $v0, $zero	# Load starting cursor postion to $t0
-	li $t3, 0x00FFFFFF	# Set colour
 	lw $t4, BRICKS_IN_COL	# Set outer loop var
 	lw $t5, BRICKS_IN_ROW	# Set inner loop var
 	la $t9, BRICK_ARR	# Load brick array pointer position
@@ -37,39 +36,48 @@ jank_draw_bricks:
 			beq $t5, $zero, end_jdb_inner	# Exit loop
 			
 			lw $t7, 0($t9)				# Get brick health from array
-			beq $t7, $zero, no_brick_to_draw	# If health is not 0, we draw the brick
-				# Save variables onto stack
-				addi $sp, $sp, -4	# Increment stack to next open slot
-				sw $t0, 0($sp)	# Push cursor
-				addi $sp, $sp, -4	# Increment stack to next open slot
-				sw $t3, 0($sp)	# Push colour
-				addi $sp, $sp, -4	# Increment stack to next open slot
-				sw $t4, 0($sp)	# Push outer counter
-				addi $sp, $sp, -4	# Increment stack to next open slot
-				sw $t5, 0($sp)	# Push inner counter
-				addi $sp, $sp, -4	# Increment stack to next open slot
-				sw $t9, 0($sp)	# Push brick array pointer
+								# if 3, paint blue, if 2, paint green, if 1, paint red, if 0 paint black
+			# save colour in $t3
+			li $t3, 0	
+			blez $t7, jdb_finish_colour		# If 0, paint black
+			li $t3, 0x00EE1111		
+			beq $t7, 1, jdb_finish_colour		# If 1, paint red
+			li $t3, 0x0011EE11	
+			beq $t7, 2, jdb_finish_colour		# If 2, paint green
+			li $t3, 0x001111EE			# if 3, paint blue
 			
-				# Call rectangle drawing function
-				add $a0, $zero, $t0		
-				lw $a1, BRICK_HEIGHT
-				lw $a2, BRICK_WIDTH
-				add $a3, $t3, $zero
-				jal draw_rect
+			jdb_finish_colour:
+			# Save variables onto stack
+			addi $sp, $sp, -4	# Increment stack to next open slot
+			sw $t0, 0($sp)	# Push cursor
+			addi $sp, $sp, -4	# Increment stack to next open slot
+			sw $t3, 0($sp)	# Push colour
+			addi $sp, $sp, -4	# Increment stack to next open slot
+			sw $t4, 0($sp)	# Push outer counter
+			addi $sp, $sp, -4	# Increment stack to next open slot
+			sw $t5, 0($sp)	# Push inner counter
+			addi $sp, $sp, -4	# Increment stack to next open slot
+			sw $t9, 0($sp)	# Push brick array pointer
 			
-				# Pop off the stack
-				lw $t9, 0($sp)		# Pop brick array pointer from stack
-				addi $sp, $sp, 4		# Increment stack
-				lw $t5, 0($sp)		# Pop inner counter from stack
-				addi $sp, $sp, 4		# Increment stack
-				lw $t4, 0($sp)		# Pop outer counter from stack
-				addi $sp, $sp, 4		# Increment stack
-				lw $t3, 0($sp)		# Pop colour counter from stack
-				addi $sp, $sp, 4		# Increment stack
-				lw $t0, 0($sp)		# Pop cursor from stack
-				addi $sp, $sp, 4		# Increment stack
+			# Call rectangle drawing function
+			add $a0, $zero, $t0		
+			lw $a1, BRICK_HEIGHT
+			lw $a2, BRICK_WIDTH
+			add $a3, $t3, $zero
+			jal draw_rect
 			
-			no_brick_to_draw:	# Label skipping all the brick-drawing stuff
+			# Pop off the stack
+			lw $t9, 0($sp)		# Pop brick array pointer from stack
+			addi $sp, $sp, 4		# Increment stack
+			lw $t5, 0($sp)		# Pop inner counter from stack
+			addi $sp, $sp, 4		# Increment stack
+			lw $t4, 0($sp)		# Pop outer counter from stack
+			addi $sp, $sp, 4		# Increment stack
+			lw $t3, 0($sp)		# Pop colour counter from stack
+			addi $sp, $sp, 4		# Increment stack
+			lw $t0, 0($sp)		# Pop cursor from stack
+			addi $sp, $sp, 4		# Increment stack
+			
 			addi $t5, $t5, -1	# Decrement loop var
 			lw $t7, BRICK_MEM_SIZE	# Load brick memory size
 			add $t9, $t7, $t9 	# Increment brick array pointer
@@ -93,8 +101,6 @@ jank_draw_bricks:
 		mflo $t6	
 		add $t0, $t6, $t0	# Bring cursor to next row (brick height)
 		addi $t4, $t4, -1	# Decrement row	
-		li $t6, 0x00110011	# Load colour change
-		sub $t3, $t3, $t6	# Change colour
 		j jdb_outer
 	end_jdb_outer:
 	lw $ra, 0($sp)		# Pop return address from stack
@@ -116,6 +122,25 @@ draw_ball:
 	li $a1, 1		# Load ball width and height to a1 and a2
 	li $a2, 1		
 	li $a3, 0x00FFFFFF	# Load ball colour
+	add $t9, $ra, $zero	# Transfer return address (about to make function call)
+	jal draw_rect	
+	jr $t9
+
+.globl clear_ball		
+clear_ball:
+	# Setup cursor
+	lw $a0, BALL_X		# Load ball x and y
+	lw $a1, BALL_Y
+	addi $sp, $sp, -4	# Decrement stack pointer
+	sw $ra, 0($sp)		# Save return address to stack
+	jal go_to_screen_mem	# Get positioned screen cursor in $v0
+	lw $ra, 0($sp)		# Get return value back
+	addi $sp, $sp, 4	# Increment stack pointer
+	
+	add $a0, $v0, $zero	# Load cursor to a0
+	li $a1, 1		# Load ball width and height to a1 and a2
+	li $a2, 1		
+	li $a3, 0x000000	# Load ball colour
 	add $t9, $ra, $zero	# Transfer return address (about to make function call)
 	jal draw_rect	
 	jr $t9
@@ -177,6 +202,28 @@ draw_paddle:
 	lw $a1, PAD_HEIGHT
 	lw $a2, PAD_WIDTH	# Load paddle width and height  to a
 	lw $a3, PAD_COL		# Load paddle colour
+	add $t9, $ra, $zero	# Transfer return address (about to make function call)
+	jal draw_rect	
+	jr $t9
+	
+.globl clear_paddle
+# Draws the paddle
+# Uses $t0, $t1, $t2, $t3, $t4, and $t5
+clear_paddle:
+	# Get address of cursor
+	lw $a0, PAD_X		# Load paddle x and y
+	lw $a1, PAD_Y
+	addi $sp, $sp, -4	# Decrement stack pointer
+	sw $ra, 0($sp)		# Save return address to stack
+	jal go_to_screen_mem	# Get positioned screen cursor in $v0
+	lw $ra, 0($sp)		# Get return value back
+	addi $sp, $sp, 4	# Increment stack pointer
+	
+	# Drawing the paddle
+	add $a0, $v0, $zero	# Load cursor to a0
+	lw $a1, PAD_HEIGHT
+	lw $a2, PAD_WIDTH	# Load paddle width and height  to a
+	li $a3, 0x00000000	# Load black
 	add $t9, $ra, $zero	# Transfer return address (about to make function call)
 	jal draw_rect	
 	jr $t9

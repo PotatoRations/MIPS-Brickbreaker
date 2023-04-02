@@ -84,8 +84,17 @@ BALL_Y_V: .word -1			# Y velocity of the ball, always either 1 or -1
 main:
     # Initialize the game
     jal set_bricks
+    
+    # start initial draw
+    	jal draw_paddle
+	jal draw_walls
+	jal jank_draw_bricks
+	jal draw_ball 
 
 game_loop:
+	# Clear screen
+	jal clear_ball
+	jal clear_paddle
 	# 1a. Check if key has been pressed
     # 1b. Check which key has been pressed
     # 2a. Check for collisions
@@ -94,11 +103,10 @@ game_loop:
 	jal move_ball
 	
 	# 3. Draw the screen
-	jal clear_screen
 	jal draw_paddle
 	jal draw_walls
-	jal jank_draw_bricks
 	jal draw_ball 
+	# Don't need to draw bricks as thos are handled when we calculare collisions
 	
 	# 4. Sleep
 	li $v0, 32
@@ -389,6 +397,12 @@ break_brick_from_coords:
 	beqz $t0, end_break_brick_from_coords	# If the brick is nonexistent, we can't break it
 	addi $t0, $t0, -1	# decrement $t0
 	sw $t0, 0($t2)		# save $t0
+	# Redraw bricks now that we have broken one
+	addi $sp, $sp, -4	# decrement stack
+	sw $ra, 0($sp)		# save return address
+	jal jank_draw_bricks	# redraw bricks
+	lw $ra, 0($sp)		# load return address
+	addi $sp, $sp, 4	# increment stack
 	
 	end_break_brick_from_coords:
 	jr $ra
