@@ -82,6 +82,9 @@ BALL_Y_V: .word -1			# Y velocity of the ball, always either 1 or -1
 
 	# Run the Brick Breaker game.
 main:
+
+	# Draw title screen
+
     # Initialize the game
     jal set_bricks
     
@@ -94,13 +97,15 @@ main:
 game_loop:
 	# Clear screen
 	jal clear_ball
+	jal move_ball
 	jal clear_paddle
+	jal move_paddle
 	# 1a. Check if key has been pressed
     # 1b. Check which key has been pressed
     # 2a. Check for collisions
 	# 2b. Update locations (paddle, ball)
-	jal move_paddle
-	jal move_ball
+	
+	
 	
 	# 3. Draw the screen
 	jal draw_paddle
@@ -110,7 +115,7 @@ game_loop:
 	
 	# 4. Sleep
 	li $v0, 32
-	li $a0, 100
+	li $a0, 50
 	syscall
 
     #5. Go back to 1
