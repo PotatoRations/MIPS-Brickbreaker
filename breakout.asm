@@ -136,6 +136,13 @@ game_loop:
 
     #5. Go back to 1
     b game_loop
+   
+.globl end_program
+end_program:	# exits gracefully :)
+	jal clear_screen
+	li $v0, 10		# Load code for exit syscall
+	syscall			# Exit program	
+	
     
 game_over:	# Ends the game
 	# reset ball
@@ -336,6 +343,8 @@ move_paddle:
 	lw $t1, 4($t0)			# Load the key pressed
 	beq $t1, 0x61, move_pad_left	# If A is pressed, move paddle left
 	beq $t1, 0x64, move_pad_right	# If D is pressed, move paddle right
+	beq $t1, 27, end_program	# If r is pressed, end game
+	beq $t1, 'r', game_over		# If r is pressed, end game
 	j no_key	# not a key we care about
 	move_pad_right:
 		lw $t2, PAD_X	# Load paddle x position

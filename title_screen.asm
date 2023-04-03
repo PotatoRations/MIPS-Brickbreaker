@@ -46,6 +46,7 @@ title_logic:
 	beq $t1, $zero, title_check_key	# If no key has been pressed, return to check key
 	lw $t1, 4($t0)			# Load the key pressed
 	beq $t1, 0x61, start_game	# If A is pressed, start the game
+	beq $t1, 27, end_program	# If esc is pressed, end game
 	j title_check_key
 	start_game:
 	jr $ra
