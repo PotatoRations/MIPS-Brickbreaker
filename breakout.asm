@@ -52,6 +52,7 @@ PAD_COL: .word 0x00CCCCFF	# Paddle colour (blue)
 BRICK_ARR: .word 0 : 112	# Array for the bricks
 				# Bricks are in a 7 wide x 16 tall grid
 				# Each brick is 1 word in data, representing its health (if I implement it), or 0 if not exist
+BRICK_ARR_SIZE: .word 112
 				
 .globl BRICK_MEM_SIZE
 BRICK_MEM_SIZE: .word 4		# Store the size of each brick in memory
@@ -74,7 +75,7 @@ BALL_X_V: .word 1			# X velocity of the ball, between 1 and -1
 .globl BALL_Y_V
 BALL_Y_V: .word -1			# Y velocity of the ball, always either 1 or -1
 
-level:	.word 1		# Current level that the user is on
+LEVEL:	.word 1		# Current level that the user is on
 
 
 ##############################################################################
@@ -128,7 +129,7 @@ game_loop:
 	jal draw_walls
 	jal draw_ball 
 	# Don't need to draw bricks as thos are handled when we calculare collisions
-	
+	jal check_win
 	# 4. Sleep
 	li $v0, 32
 	li $a0, 50
@@ -521,6 +522,56 @@ clear_bricks:
 	lw $ra, 0($sp)		# Load return address
 	addi $sp, $sp, 4	# Increment stack pointer
 	jr $ra				# Return to caller
+	
+# Checks to see if there are no more bricks on screen, if so, will increment to next level
+check_win:
+	la $t0, BRICK_ARR	# Load address of brick array
+	lw $t1, BRICK_ARR_SIZE	# Load size of brick array
+	# Check if we have won
+	check_win_loop:
+		beq $t1, $zero, win	# If we have reached the end of the loop, there are no bricks left
+		lw $t2, 0($t0)		# Load element of brick array
+		bne $t2, $zero, no_win	# If it is not zero, we have not won
+		lw $t2, BRICK_MEM_SIZE	# Save size of brick in memory
+		add $t0, $t0, $t2	# Increment brick array pointer
+		addi $t1, $t1, -1	# Decrement loop variable
+		j check_win_loop
+	win:	# we have won! 
+		j next_level
+		
+	no_win:		
+	jr $ra
+	
+# Set up next level
+next_level:
+	lw $t0, LEVEL		# Load current level number
+	bne $t0, 1, win_end	# If we are on level 2, end game
+		# Finish level 1
+		li $t0, 2		# Increment level
+		lw $t0, LEVEL		# Save level to memory
+		# reset ball
+		li $t0, 0x00000020
+		sw $t0, BALL_X
+		li $t0, 0x00000077
+		sw $t0, BALL_Y
+		li $t0, 1
+		sw $t0, BALL_X_V
+		li $t0, -1
+		sw $t0, BALL_Y_V
+		# reset paddle
+		li $t0, 0x00000019
+		sw $t0, PAD_X	
+		li $t0, 0x00CCCCFF	# For some unknown reason we have to change the paddle colour, idk why but it breaks without it
+					# There's probably some kind of memory leak or issue somewhere
+		sw $t0, PAD_COL
+		jal clear_bricks
+		jal set_bricks_lvl_1	# Change this to proper level
+		jal jank_draw_bricks
+		j game_loop
+		
+	win_end:			# Won all levels, returning to main menu
+		jal game_over
+	
 	
 # set brick row
 # $a0: the row to work on (0-8)
