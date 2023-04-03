@@ -183,6 +183,7 @@ go_to_screen_mem:
 move_ball:
 	lw $t0, BALL_X		# Load ball x position
 	lw $t1, BALL_X_V	# Load ball x velocity
+	lw $t7	BALL_X_V	# Also load ball x velocity into $t7 (will be used later by paddle calculations)
 	lw $t2, BALL_Y		# Load ball y position
 	lw $t3, BALL_Y_V	# Load ball y velocity
 	li $t8, 0		# Set to 1 if we changed the x velocity
@@ -194,35 +195,9 @@ move_ball:
 	lw $t4, DSPL_HEIGHT	# Load display height
 	bge $t2, $t4, game_over	# End game if the ball is off screen
 	lw $t4, PAD_Y		# Load paddle height
-	bge $t2, $t4, resolve_ball_v	# Prevent weird things like the ball getting stuck inside the paddle
+	bge $t2, $t4, no_y_col	# Prevent weird things like the ball getting stuck inside the paddle
 	
-	ball_x_collision:
-	beq $t1, $zero, ball_y_collision	# If we have no x velocity, just resolve the y
-	add $t4, $t0, $t1	# Set $t4 to the next x of the ball
-	# Get cursor to position beside ball
-	add $a0, $t4, $zero	# Set $a0 (x) to next x
-	add $a1, $t2, $zero	# Set $a1 (y) to same y (will check y direction later)
-	jal go_to_screen_mem	# Get the screen location
-	lw $t5, 0($v0)		# Get pixel colour value from screen memory into $t4
-	beq $t5, $zero, no_x_col# Check if pixel colour is black
-	# If we have a collision
-	x_col:
-		li $t8, 1		# Set to 1 to say that we have changed the x velocity
-		sub $t1, $zero, $t1	# Reverse the x velocity
-		sw $t1, BALL_X_V	# Save the reversed velocity
-		
-		# Send call to break the brick we hit
-		# Save registers to stack
-		jal push_all_registers
-		add $a0, $t4, $zero	# Set a0 to x of brick
-		add $a1, $t2, $zero	# set a1 to y of brick
-		jal break_brick_from_coords	# call break brick
-		# pop all registers from stack
-		jal pop_all_registers	
-		j ball_y_collision
-	# If we don't have a collision
-	no_x_col:
-		
+	
 	ball_y_collision:	# Check y collision
 	add $t4, $t2, $t3	# Set $t4 to the next y of the ball
 	# Get cursor to position above/below ball
@@ -246,14 +221,40 @@ move_ball:
 		# pop all registers from stack
 		jal pop_all_registers	
 		
-		j resolve_ball_v	# Jump to resolve velocity
 	# If we don't have a collision
 	no_y_col:
 	
+	ball_x_collision:
+	beq $t1, $zero, no_x_col	# If we have no x velocity, go to next
+	add $t4, $t0, $t1	# Set $t4 to the next x of the ball
+	# Get cursor to position beside ball
+	add $a0, $t4, $zero	# Set $a0 (x) to next x
+	add $a1, $t2, $zero	# Set $a1 (y) to same y (will check y direction later)
+	jal go_to_screen_mem	# Get the screen location
+	lw $t5, 0($v0)		# Get pixel colour value from screen memory into $t4
+	beq $t5, $zero, no_x_col# Check if pixel colour is black
+	# If we have a collision
+	x_col:
+		li $t8, 1		# Set to 1 to say that we have changed the x velocity
+		sub $t1, $zero, $t1	# Reverse the x velocity
+		sw $t1, BALL_X_V	# Save the reversed velocity
+		
+		# Send call to break the brick we hit
+		# Save registers to stack
+		jal push_all_registers
+		add $a0, $t4, $zero	# Set a0 to x of brick
+		add $a1, $t2, $zero	# set a1 to y of brick
+		jal break_brick_from_coords	# call break brick
+		# pop all registers from stack
+		jal pop_all_registers	
+		j resolve_ball_v	# Jump to resolve velocity
+	# If we don't have a collision
+	no_x_col:
+	
 	ball_diag_collision: # only fire if we have not changed any velocity, meant to handle corner case where ball bounces off protruding corner
-	beq $t8, $zero, resolve_ball_v	# Skip if we have changed any velocity
-	beq $t9, $zero, resolve_ball_v
-	beq $t1, $zero, resolve_ball_v	# Skip if we have no x velocity
+	beq $t8, $zero, test_paddle_collision_code # Skip if we have changed any velocity
+	beq $t9, $zero, test_paddle_collision_code
+	beq $t1, $zero, test_paddle_collision_code	# Skip if we have no x velocity
 	add $t4, $t0, $t1	# Set $t4 to the next x of the ball
 	add $t5, $t2, $t3	# Set $t5 to the next y of the ball
 	# Get cursor to position on diag
@@ -277,10 +278,46 @@ move_ball:
 		jal break_brick_from_coords	# call break brick
 		# pop all registers from stack
 		jal pop_all_registers	
-		
-		j resolve_ball_v	# Jump to resolve velocity
+		j test_paddle_collision_code
 	# If we don't have a collision
 	no_xy_col:
+		j resolve_ball_v
+		
+	test_paddle_collision_code:
+	# Do custom paddle code if the ball is on the right Y
+	lw $t4, PAD_Y		# Load paddle height
+	addi $t4, $t4, -1	# Set t4 to one above the ypos of the paddle
+	beq $t2, $t4, paddle_collision_code	# If we are on the right Y, we check for the paddle
+	j resolve_ball_v	# If not, we just resolve
+	paddle_collision_code:
+		# If the ball is on one of the sides, we resolve, since we don't want weird bounce behaviour
+		beq $t0, 1, resolve_ball_v
+		beq $t0, 63, resolve_ball_v
+		# if we did not reflect on Y, we did not hit the paddle, so continue
+		beq $t9, $zero, resolve_ball_v
+		
+		lw $t4, PAD_X		# Load paddle x
+		lw $t5, PAD_WIDTH	# Load paddle width
+		add $t5, $t4, $t5	# Load right pixel pos of paddle (this is technically 1 more to the right)
+		addi $t4, $t4, -1	# subtract 1 to get 1 less than leftmost
+		
+		test_pad_left:# If ball is on left, sub 1 from velocity
+		addi $t6, $t4, 3	# Set threshold for left to the left 3 pixels of paddle
+		bgt $t0, $t6, test_pad_right	# If the ball is too far right, we test for right side
+			# If it is left, we make the x velocity -1, but only if it isn't already
+			beq $t1, -1, resolve_ball_v
+			addi $t1, $t1, -1	# make x velocity -1
+			sw $t1, BALL_X_V	# Save the decremented x velocity
+			j resolve_ball_v	# Jump to resolve
+		test_pad_right:# If ball is on right, make x velocity 1
+		addi $t6, $t5, -3	# Set threshold for right to the right 3 pixels of paddle
+		blt $t0, $t6, test_pad_mid	# If the ball is too far right, we test for right side
+			# If it is right, we add 1 to velocity, but only if it isn't already 1
+			beq $t1, 1, resolve_ball_v
+			addi $t1, $t1, 1	# add 1 to x velocity
+			sw $t1, BALL_X_V	# Save the incremented x velocity
+			j resolve_ball_v	# Jump to resolve
+		test_pad_mid:# Else, don't change it
 	
 	resolve_ball_v:	# resolve velocity
 	add $t0, $t0, $t1	# Add x velocity to x position
@@ -303,8 +340,14 @@ move_paddle:
 	move_pad_right:
 		lw $t2, PAD_X	# Load paddle x position
 		addi $t2, $t2, 2	# Increment paddle pos
-		sw $t2, PAD_X		# Store paddle x pos
-		j no_key
+		# Correct if paddle is off screen
+		lw $t3, DSPL_WIDTH	# Load screen width
+		lw $t4, PAD_WIDTH	# Load paddle width
+		sub $t3, $t3, $t4	# Sub paddle width from screen width
+		blt $t2, $t3, resolve_paddle	# Resolve if it is less than max
+		add $t2, $t3, $zero		# if not, make paddle x equal to max value
+		addi $t2, $t2, -1 		# decrement by 1 to make it line up properly
+		j resolve_paddle
 	move_pad_left:
 		lw $t2, PAD_X	# Load paddle x position
 		addi $t2, $t2, -2	# Increment paddle pos
