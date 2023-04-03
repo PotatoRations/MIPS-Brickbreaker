@@ -74,6 +74,8 @@ BALL_X_V: .word 1			# X velocity of the ball, between 1 and -1
 .globl BALL_Y_V
 BALL_Y_V: .word -1			# Y velocity of the ball, always either 1 or -1
 
+level:	.word 1		# Current level that the user is on
+
 
 ##############################################################################
 # Code
@@ -86,7 +88,8 @@ main:
 	title_screen:
 	# Draw title screen
 	jal clear_screen
-	jal set_bricks
+	jal clear_bricks
+	jal set_bricks_lvl_1
 	jal draw_paddle
 	jal draw_walls
 	jal jank_draw_bricks
@@ -97,7 +100,9 @@ main:
 	jal clear_screen	# Clear the screen
 
     # Initialize the game
-    jal set_bricks
+    jal clear_bricks
+    jal set_bricks_lvl_1
+    
     
     # start initial draw
     	jal draw_paddle
@@ -292,70 +297,234 @@ move_paddle:
 	j no_key	# not a key we care about
 	move_pad_right:
 		lw $t2, PAD_X	# Load paddle x position
-		addi $t2, $t2, 1	# Increment paddle pos
+		addi $t2, $t2, 2	# Increment paddle pos
 		sw $t2, PAD_X		# Store paddle x pos
 		j no_key
 	move_pad_left:
 		lw $t2, PAD_X	# Load paddle x position
-		addi $t2, $t2, -1	# Increment paddle pos
-		sw $t2, PAD_X		# Store paddle x pos
-		
-		j no_key
+		addi $t2, $t2, -2	# Increment paddle pos
+		# Block padddle if it is less than 1
+		bge $t2, 1, resolve_paddle	# Resolve if it is greater than or equal to 1
+		li $t2, 1			# if not, make paddle x equal to 1
+	resolve_paddle:
+	sw $t2, PAD_X		# Store paddle x pos
 	no_key:
 	jr $ra
 
 # Set up bricks, used at initialisation
-set_bricks:
-	add $t9, $zero, $ra	# Save return address to $t9
+set_bricks_lvl_1:
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $ra 0($sp)		# Save return address
+	# Top row (all 7 empty
 	li $a0, 0		# Work on the first row	
-	li $a1, 255		# Set 3 middle bricks of top row (01110 = 14)
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero 0($sp)		# make first brick 0
 	jal set_brick_row	# Call function to set the row
-	li $a0, 1		# Work on the first row	
-	li $a1, 1		# Set 3 middle bricks of top row
-	jal set_brick_row	# Call function to set the row
-	li $a0, 2		# Work on the first row	
-	li $a1, 2		# Set 3 middle bricks of top row
-	jal set_brick_row	# Call function to set the row
-	li $a0, 3		# Work on the first row	
-	li $a1, 3		# Set 3 middle bricks of top row
-	jal set_brick_row	# Call function to set the row
-	li $a0, 4		# Work on the first row	
-	li $a1, 4		# Set 3 middle bricks of top row
-	jal set_brick_row	# Call function to set the row
-	li $a0, 5		# Work on the first row	
-	li $a1, 5		# Set 3 middle bricks of top row
-	jal set_brick_row	# Call function to set the row
-	jr $t9				# Return to caller
 	
-# Set up bricks, used at initialisation
-set_full_bricks:
+	# Seconrd row (1000001)
+	li $a0, 1		# Work on the second row	
+	li $t0, 1		# Make $t0, 1
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	# Third row (0100001)
+	li $a0, 2		# Work on the third row	
+	li $t0, 1		# Make $t0, 1
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	# fourth row (0011100)
+	li $a0, 3		# Work on the fourth row	
+	li $t0, 1		# Make $t0, 1
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	# fifth row (0111110)
+	li $a0, 4		# Work on the fifth row	
+	li $t0, 1		# Make $t0, 1
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	# sixth row (1121211)
+	li $a0, 5		# Work on the sixth row	
+	li $t0, 1		# Make $t0, 1
+	li $t1, 2		# Make $t1, 2
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t1, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t1, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	# seventh row (1111111)
+	li $a0, 6		# Work on the seventh row	
+	li $t0, 1		# Make $t0, 1
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	# eighth row (1011101)
+	li $a0, 7		# Work on the eighth row	
+	li $t0, 1		# Make $t0, 1
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	# Ninth row (1000001)
+	li $a0, 8		# Work on the ninth row	
+	li $t0, 1		# Make $t0, 1
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make  brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make  brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make  brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make  brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero 0($sp)		# make  brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make  brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make  brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	
+	lw $ra, 0($sp)		# Load return from stack
+	jr $ra
+	
+# make all bricks in memory 0 health
+clear_bricks:
 	addi $sp, $sp, -4	# Decrement stack
 	sw $ra, 0($sp)		# Save return address
 	
-	lw $t1, BRICKS_IN_COL	# get number of columns of bricks
-	set_full_bricks_loop:
-		blez $t1, set_full_bricks_end	# If we are at row 0 or less, stop
+	li $t1, 0		# Loop variable for outer loop (rows)
+	clear_bricks_outer_loop:
+		lw $t4, BRICKS_IN_COL	# Load number of bricks in column
+		bge $t1, $t4, clear_bricks_end	# If we are at last row or more, stop
 		addi $sp, $sp, -4	# push $t1 onto stack
 		sw $t1, 0($sp)		
 		
-		addi $a0, $t1, -1	# Assign row 1 less than our loop var
-		li $a1, 255		# Set all bricks on
-		jal set_brick_row	# call helper function
+		lw $t2, BRICKS_IN_ROW	# make $t2 the number of bricks in a row
+		clear_bricks_inner_loop:
+			beq $t2, $zero, end_clear_bricks_inner_loop	# Only push 1 row of bricks into stack
+			addi $sp, $sp, -4	# decrement stack pointer
+			sw $zero, 0($sp)	# make  brick 0
+			addi $t2, $t2, -1	# decrement loop variable
+			j clear_bricks_inner_loop	# Restart loop
+		end_clear_bricks_inner_loop:
+		add $a0, $zero, $t1	# Set row number to $t1
+		jal set_brick_row	# Call function to set the row
 		# Pop $t1 from stack
-		lw $t1, 0($sp)		# Load return address
+		lw $t1, 0($sp)		# Load loop variable
 		addi $sp, $sp, 4	# Increment stack pointer
-		addi $t1, $t1, -1	# Decrement $t1
-		j set_full_bricks_loop
-	set_full_bricks_end:
+		addi $t1, $t1, 1	# increment $t1
+		j clear_bricks_outer_loop
+	clear_bricks_end:
 	lw $ra, 0($sp)		# Load return address
 	addi $sp, $sp, 4	# Increment stack pointer
 	jr $ra				# Return to caller
 	
 # set brick row
 # $a0: the row to work on (0-8)
-# $a1: the mask for the bricks (i.e. 11000 represents the right 2 bricks (is mirrored))
-# Could also pass in brick health or something
-# Will keep $t9 free for return function calls
+# Brick health is passed in words via the stack: Pass in 7 words representing the health of bricks 
 set_brick_row:
 	# Set up memory pointer
 	la $t0, BRICK_ARR		# Load pointer to bricks array into $t0
@@ -367,22 +536,12 @@ set_brick_row:
 	lw $t1, BRICKS_IN_ROW		# Load the number of bricks in row into $t1 (loop variable)
 	set_brick_loop:
 		beq $t1, $zero, end_set_brick_loop 	# Branch statment if we have finished each brick in row	
-		li $t2, 2	
-		div $a1, $t2				# Get the last digit value (by dividing by 2 and checking if 0)
-		mfhi $t2
-		beq $t2, $zero, not_brick		# If it is 1, we make it a brick
-			li $a0, 1			# Make brick health 1 (can change later)
-			sw $a0, 0($t0)			# Save health value to brick	
-							# Store other values here
-			j brick_branch_end
-		not_brick:
-			sw $zero, 0($t0)		# Set brick value to black
-							# Store other values here
-		brick_branch_end:
+		lw $t2, 0($sp)		# Get brick health from stack
+		addi $sp, $sp, 4	# Increment stack pointer
+		sw $t2, 0($t0)		# save brick health to array
 		addi $t1, $t1, -1 	# Decrement loop var
 		lw $t3, BRICK_MEM_SIZE	# Increment brick row pos
-		add $t0, $t0, $t3
-		srl $a1, $a1, 1		# Shift mask right by 1
+		add $t0, $t0, $t3	# Add increment to brick array pointer
 		j set_brick_loop	# Restart loop
 	end_set_brick_loop:
 	jr $ra
