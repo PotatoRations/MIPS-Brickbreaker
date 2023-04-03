@@ -312,184 +312,6 @@ move_paddle:
 	no_key:
 	jr $ra
 
-# Set up bricks, used at initialisation
-set_bricks_lvl_1:
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $ra 0($sp)		# Save return address
-	# Top row (all 7 empty
-	li $a0, 0		# Work on the first row	
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero 0($sp)		# make first brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	# Seconrd row (1000001)
-	li $a0, 1		# Work on the second row	
-	li $t0, 1		# Make $t0, 1
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	# Third row (0100001)
-	li $a0, 2		# Work on the third row	
-	li $t0, 1		# Make $t0, 1
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	# fourth row (0011100)
-	li $a0, 3		# Work on the fourth row	
-	li $t0, 1		# Make $t0, 1
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	# fifth row (0111110)
-	li $a0, 4		# Work on the fifth row	
-	li $t0, 1		# Make $t0, 1
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	# sixth row (1121211)
-	li $a0, 5		# Work on the sixth row	
-	li $t0, 1		# Make $t0, 1
-	li $t1, 2		# Make $t1, 2
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t1, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t1, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	# seventh row (1111111)
-	li $a0, 6		# Work on the seventh row	
-	li $t0, 1		# Make $t0, 1
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	# eighth row (1011101)
-	li $a0, 7		# Work on the eighth row	
-	li $t0, 1		# Make $t0, 1
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make first brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make first brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	# Ninth row (1000001)
-	li $a0, 8		# Work on the ninth row	
-	li $t0, 1		# Make $t0, 1
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make  brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make  brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make  brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make  brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero 0($sp)		# make  brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $zero, 0($sp)		# make  brick 0
-	addi $sp, $sp, -4	# decrement stack pointer
-	sw $t0, 0($sp)		# make  brick 0
-	jal set_brick_row	# Call function to set the row
-	
-	
-	lw $ra, 0($sp)		# Load return from stack
-	jr $ra
 	
 # make all bricks in memory 0 health
 clear_bricks:
@@ -565,7 +387,7 @@ next_level:
 					# There's probably some kind of memory leak or issue somewhere
 		sw $t0, PAD_COL
 		jal clear_bricks
-		jal set_bricks_lvl_1	# Change this to proper level
+		jal set_bricks_lvl_2	# Change this to proper level
 		jal jank_draw_bricks
 		j game_loop
 		
@@ -576,6 +398,7 @@ next_level:
 # set brick row
 # $a0: the row to work on (0-8)
 # Brick health is passed in words via the stack: Pass in 7 words representing the health of bricks 
+.globl set_brick_row
 set_brick_row:
 	# Set up memory pointer
 	la $t0, BRICK_ARR		# Load pointer to bricks array into $t0
