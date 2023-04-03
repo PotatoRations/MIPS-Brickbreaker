@@ -1,5 +1,32 @@
 .text
 
+.globl set_test_lvl
+set_test_lvl:
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $ra 0($sp)		# Save return address
+	
+	li $a0, 1		# Work on the second row	
+	li $t0, 1		# Make $t0, 1
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $zero, 0($sp)		# make first brick 0
+	addi $sp, $sp, -4	# decrement stack pointer
+	sw $t0, 0($sp)		# make first brick 0
+	jal set_brick_row	# Call function to set the row
+	
+	lw $ra, 0($sp)		# Load return from stack
+	addi $sp, $sp, 4	# Increment stack pointer
+	jr $ra
+
 .globl set_bricks_lvl_1
 # Set up bricks, used at initialisation
 set_bricks_lvl_1:
@@ -43,7 +70,7 @@ set_bricks_lvl_1:
 	sw $t0, 0($sp)		# make first brick 0
 	jal set_brick_row	# Call function to set the row
 	
-	# Third row (0100001)
+	# Third row (0100010)
 	li $a0, 2		# Work on the third row	
 	li $t0, 1		# Make $t0, 1
 	addi $sp, $sp, -4	# decrement stack pointer

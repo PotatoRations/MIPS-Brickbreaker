@@ -97,11 +97,10 @@ main:
 	jal draw_ball 
 	jal set_title
 	jal draw_title
-	jal title_logic # blocks game until A is pressed and we exit title screen
+	jal title_logic # blocks game until a is pressed and we exit title screen
 	jal clear_screen	# Clear the screen
 
     # Initialize the game
-    jal clear_bricks
     jal set_bricks_lvl_1
     
     
@@ -140,6 +139,7 @@ game_loop:
     
 game_over:	# Ends the game
 	# reset ball
+	jal clear_ball
 	li $t0, 0x00000020
 	sw $t0, BALL_X
 	li $t0, 0x00000077
@@ -149,11 +149,15 @@ game_over:	# Ends the game
 	li $t0, -1
 	sw $t0, BALL_Y_V
 	# reset paddle
+	jal clear_paddle
 	li $t0, 0x00000019
 	sw $t0, PAD_X
 	li $t0, 0x00CCCCFF	# For some unknown reason we have to change the paddle colour, idk why but it breaks without it
 				# There's probably some kind of memory leak or issue somewhere
 	sw $t0, PAD_COL
+	
+	li $t0, 1
+	sw $t0, LEVEL		# Reset level
 	j title_screen		# jump to title screen
 
 
@@ -370,8 +374,9 @@ next_level:
 	bne $t0, 1, win_end	# If we are on level 2, end game
 		# Finish level 1
 		li $t0, 2		# Increment level
-		lw $t0, LEVEL		# Save level to memory
+		sw $t0, LEVEL		# Save level to memory
 		# reset ball
+		jal clear_ball
 		li $t0, 0x00000020
 		sw $t0, BALL_X
 		li $t0, 0x00000077
@@ -381,6 +386,7 @@ next_level:
 		li $t0, -1
 		sw $t0, BALL_Y_V
 		# reset paddle
+		jal clear_paddle
 		li $t0, 0x00000019
 		sw $t0, PAD_X	
 		li $t0, 0x00CCCCFF	# For some unknown reason we have to change the paddle colour, idk why but it breaks without it
@@ -392,7 +398,7 @@ next_level:
 		j game_loop
 		
 	win_end:			# Won all levels, returning to main menu
-		jal game_over
+		j game_over
 	
 	
 # set brick row
